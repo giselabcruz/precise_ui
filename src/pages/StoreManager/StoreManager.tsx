@@ -23,19 +23,21 @@ function StoreManager() {
   );
 
   return (
-    <div className="store-manager-container">
-      <h1 className="text-xl font-bold mb-4">Store Manager</h1>
-      <div className="logistics-center-selector mb-4">
-        <h2 className="text-lg font-semibold">Select Logistics Centers:</h2>
+    <div className="store-manager-container p-6 bg-red-50 min-h-screen">
+      <h1 className="text-2xl text-red-700 font-bold mb-6">Gestión de Tienda</h1>
+
+      <div className="logistics-center-selector mb-6">
+        <h2 className="text-lg text-red-600 font-semibold mb-2">Selecciona centros logísticos:</h2>
         <ul className="list-none space-y-2">
           {logisticsCenters.map((center) => (
             <li key={center}>
-              <label>
+              <label className="flex items-center gap-2 text-red-800">
                 <input
                   type="checkbox"
                   value={center}
                   checked={selectedCenters.includes(center)}
                   onChange={() => handleCenterChange(center)}
+                  className="accent-red-600"
                 />
                 {center}
               </label>
@@ -43,23 +45,24 @@ function StoreManager() {
           ))}
         </ul>
       </div>
+
       <div className="product-list">
-        <h2 className="text-lg font-semibold">Products:</h2>
+        <h2 className="text-lg text-red-600 font-semibold mb-2">Productos:</h2>
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-3 gap-4 bg-gray-100 p-4 rounded shadow">
-            <div className="font-bold">Name</div>
-            <div className="font-bold">Quantity</div>
-            <div className="font-bold">Logistics Center</div>
+          <div className="grid grid-cols-3 gap-4 bg-red-100 p-4 rounded shadow">
+            <div className="font-bold text-red-800">Nombre</div>
+            <div className="font-bold text-red-800">Cantidad</div>
+            <div className="font-bold text-red-800">Centro</div>
             {filteredProducts.map((product, index) => (
               <React.Fragment key={index}>
-                <div className="border-b border-gray-300 py-2">{product.name}</div>
-                <div className="border-b border-gray-300 py-2">{product.quantity}</div>
-                <div className="border-b border-gray-300 py-2">{product.center}</div>
+                <div className="border-b border-red-300 py-2 text-red-700">{product.name}</div>
+                <div className="border-b border-red-300 py-2 text-red-700">{product.quantity}</div>
+                <div className="border-b border-red-300 py-2 text-red-700">{product.center}</div>
               </React.Fragment>
             ))}
           </div>
         ) : (
-          <p>No products available for the selected logistics centers.</p>
+          <p className="text-red-500">No hay productos para los centros seleccionados.</p>
         )}
       </div>
     </div>
