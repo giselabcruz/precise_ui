@@ -6,17 +6,17 @@ import Supplier from '../Supplier/Supplier';
 
 interface HomeProps {
   userRole: string;
+  onLogout: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ userRole }) => {
+const Home: React.FC<HomeProps> = ({ userRole, onLogout }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const handleLogout = () => {
+    onLogout();
     navigate('/');
   };
 
@@ -25,7 +25,7 @@ const Home: React.FC<HomeProps> = ({ userRole }) => {
       <header className="bg-red-600 text-white p-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
           <img src="/Spar-Logo.png" alt="SPAR Logo" className="h-15" />
-          <span className="text-xl font-bold">Logística</span>
+          <span className="text-xl font-bold">Panel de Logística</span>
         </div>
         <div className="relative">
           <button
@@ -52,6 +52,7 @@ const Home: React.FC<HomeProps> = ({ userRole }) => {
           )}
         </div>
       </header>
+
       <main className="flex-grow p-6 bg-red-100">
         {userRole === 'store-manager' && <StorageManager />}
         {userRole === 'supplier' && <Supplier />}
