@@ -1,100 +1,69 @@
+import React, { useState } from 'react';
 import './StoreManager.css';
 
-function Login() {
-  const handleLogin = () => {
-    const role = 'store-manager'; // Example role
+function StoreManager() {
+  const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
+  const logisticsCenters = ['Center A', 'Center B', 'Center C'];
+  const products = [
+    { name: 'Product 1', quantity: 100, center: 'Center A' },
+    { name: 'Product 2', quantity: 50, center: 'Center B' },
+    { name: 'Product 3', quantity: 200, center: 'Center C' },
+  ];
 
+  const handleCenterChange = (center: string) => {
+    setSelectedCenters((prev) =>
+      prev.includes(center)
+        ? prev.filter((c) => c !== center)
+        : [...prev, center]
+    );
   };
 
+  const filteredProducts = products.filter((product) =>
+    selectedCenters.includes(product.center)
+  );
 
   return (
-      <div className="navbar fixed z-1">
-        
-        <div className="navbar-start-box">
-          <button className="btn btn-navbar p-2">
-            <svg
-              width="24px"
-              height="24px"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              color="currentColor"
-              data-darkreader-inline-color="currentColor"
-              >
-              <path
-                d="M3 5H21"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                data-darkreader-inline-stroke="currentColor"
-                >
-              </path>
-              <path
-                d="M3 12H21"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                data-darkreader-inline-stroke="currentColor"
-                >
-              </path>
-              <path
-                d="M3 19H21"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                data-darkreader-inline-stroke="currentColor"
-                >
-              </path>
-            </svg>
-          </button>
-        </div>
-
-        <div className="navbar-center-box">
-          <button className="btn btn-navbar font-bold text-xl">
-            My App
-          </button>
-        </div>
-
-        <div className="navbar-end-box">
-          <button className="btn btn-navbar p-2">
-            <svg
-              width="24px"
-              height="24px"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              color="currentColor"
-              data-darkreader-inline-color="currentColor"
-              >
-              <path
-                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                data-darkreader-inline-stroke="currentColor"
-                >
-              </path>
-              <path
-                d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.48295L13.5578 4.36974L12.9353 2H10.981L10.3491 4.40113L7.70441 5.51596L6 4L4 6L5.45337 7.78885L4.3725 10.4463L2 11V13L4.40111 13.6555L5.51575 16.2997L4 18L6 20L7.79116 18.5403L10.397 19.6123L11 22H13L13.6045 19.6132L16.2551 18.5155C16.6969 18.8313 18 20 18 20L20 18L18.5159 16.2494L19.6139 13.598L21.9999 12.9772L22 11L19.6224 10.3954Z"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                data-darkreader-inline-stroke="currentColor"
-                >
-              </path>
-            </svg>
-          </button>
-        </div>
-
+    <div className="store-manager-container">
+      <h1 className="text-xl font-bold mb-4">Store Manager</h1>
+      <div className="logistics-center-selector mb-4">
+        <h2 className="text-lg font-semibold">Select Logistics Centers:</h2>
+        <ul className="list-none space-y-2">
+          {logisticsCenters.map((center) => (
+            <li key={center}>
+              <label>
+                <input
+                  type="checkbox"
+                  value={center}
+                  checked={selectedCenters.includes(center)}
+                  onChange={() => handleCenterChange(center)}
+                />
+                {center}
+              </label>
+            </li>
+          ))}
+        </ul>
       </div>
+      <div className="product-list">
+        <h2 className="text-lg font-semibold">Products:</h2>
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4 bg-gray-100 p-4 rounded shadow">
+            <div className="font-bold">Name</div>
+            <div className="font-bold">Quantity</div>
+            <div className="font-bold">Logistics Center</div>
+            {filteredProducts.map((product, index) => (
+              <React.Fragment key={index}>
+                <div className="border-b border-gray-300 py-2">{product.name}</div>
+                <div className="border-b border-gray-300 py-2">{product.quantity}</div>
+                <div className="border-b border-gray-300 py-2">{product.center}</div>
+              </React.Fragment>
+            ))}
+          </div>
+        ) : (
+          <p>No products available for the selected logistics centers.</p>
+        )}
+      </div>
+    </div>
   );
-};
+}
 
-export default Login;
+export default StoreManager;

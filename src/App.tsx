@@ -1,8 +1,7 @@
 import './App.css'
 import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login/Login';
-import StoreManager from './pages/StoreManager/StoreManager';
-import Supplier from './pages/Supplier/Supplier';
+import Login from './pages/Login/Login'; 
+import Home from './pages/Home/Home';
 import { useState } from 'react';
 
 function App() {
@@ -10,13 +9,8 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Login onLogin={(role: string) => setUserRole(role)} />} />
-      {userRole === 'store-manager' && (
-        <Route path="/store-manager" element={<StoreManager />} />
-      )}
-      {userRole === 'supplier' && (
-        <Route path="/supplier" element={<Supplier />} />
-      )}
+      <Route path="/" element={<Login onLogin={(role) => setUserRole(role)} />} />
+      {userRole && <Route path="/home" element={<Home userRole={userRole} />} />}
     </Routes>
   );
 }

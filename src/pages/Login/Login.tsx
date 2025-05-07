@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 interface LoginProps {
@@ -8,16 +9,19 @@ interface LoginProps {
 function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Username:', username);
     console.log('Password:', password);
-    const role = 'store-manager'; // Example role
-    onLogin(role)
-    // Aquí puedes agregar la lógica de autenticación
+
+    // Simulate role assignment based on login
+    const role = username === 'manager' ? 'store-manager' : 'supplier';
+    onLogin(role);
+
+    navigate('/home', { state: { role } });
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
