@@ -14,10 +14,23 @@ function Login({ onLogin }: LoginProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const dniRegex = /^\d{8}[A-Za-z]$/;
+    const isDNIValid = dniRegex.test(username);
+    const isPasswordValid = password.length === 9;
+
+    if (!isDNIValid) {
+      alert('El usuario debe ser un DNI válido (8 números seguidos de 1 letra).');
+      return;
+    }
+
+    if (!isPasswordValid) {
+      alert('La contraseña debe tener exactamente 9 caracteres.');
+      return;
+    }
+
     const role = username === 'manager' ? 'store-manager' : 'supplier';
     onLogin(role);
-
-    navigate('/home', { state: { role } }); // redirige al panel
+    navigate('/home', { state: { role } });
   };
 
   return (
