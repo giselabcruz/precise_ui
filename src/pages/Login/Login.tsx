@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLogin } from '../../hooks/useLogin';
 import './Login.css';
 
 interface LoginProps {
@@ -7,15 +8,16 @@ interface LoginProps {
 }
 
 function Login({ onLogin }: LoginProps) {
-  const [username, setUsername] = useState('');
+  const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
+  const loginMutation = useLogin();
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
     const dniRegex = /^\d{8}[A-Za-z]$/;
-    const isDNIValid = dniRegex.test(username);
+    const isDNIValid = dniRegex.test(dni);
     const isPasswordValid = password.length === 9;
 
     if (!isDNIValid) {
@@ -28,9 +30,21 @@ function Login({ onLogin }: LoginProps) {
       return;
     }
 
-    const role = username === 'manager' ? 'store-manager' : 'supplier';
-    onLogin(role);
-    navigate('/home', { state: { role } });
+    loginMutation.mutate({ dni, password },
+      {
+        onSuccess: (data) => {
+          localStorage.setItem('userData', JSON.stringify(data)); // Store user data in localStorage
+          const role = data.user.role;
+          console.log('Login successful:', role);
+          onLogin(role);
+          navigate('/home', { state: { role } });
+        },
+        onError: (error) => {
+          console.error('Login failed:', error);
+          // Handle login error (e.g., show error message)
+        },
+      }
+    );
   };
 
   return (
@@ -49,16 +63,16 @@ function Login({ onLogin }: LoginProps) {
               <div className="py-8 text-base leading-6 space-y-4 text-gray-800 sm:text-lg sm:leading-7">
                 <div className="form-group relative">
                   <label
-                    htmlFor="username"
+                    htmlFor="dni"
                     className="absolute left-0 -top-3.5 text-red-700 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-red-700 peer-focus:text-sm"
                   >
                     Usuario
                   </label>
                   <input
                     type="text"
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="dni"
+                    value={dni}
+                    onChange={(e) => setDni(e.target.value)}
                     placeholder="Nombre de usuario"
                     required
                     className="peer placeholder-transparent h-10 w-full border-b-2 border-red-300 text-gray-900 focus:outline-none focus:border-red-600"
@@ -85,9 +99,11 @@ function Login({ onLogin }: LoginProps) {
                   <button
                     type="submit"
                     className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2 transition-colors w-full"
+                    disabled={loginMutation.isPending}
                   >
-                    Acceder
+                    {loginMutation.isPending ? 'Logging in...' : 'Login'}
                   </button>
+                  {loginMutation.isError && <p>Error: {loginMutation.error.message}</p>}
                 </div>
               </div>
             </div>

@@ -54,7 +54,7 @@ const Home: React.FC<HomeProps> = ({ userRole, onLogout }) => {
       </header>
 
       <main className="flex-grow p-6 bg-red-100">
-        {userRole === 'store-manager' && <StorageManager />}
+        {userRole === 'store_manager' && <StorageManager />}
         {userRole === 'supplier' && <Supplier />}
       </main>
     </div>
