@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './StoreManager.css';
-import FloatingLogo from '../../components/FloatingLogo';
 
 function StoreManager() {
   const assignedStore = 'Supermercado A';

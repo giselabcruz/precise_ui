@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './Supplier.css';
-import FloatingLogo from '../../components/FloatingLogo';
 
 function Supplier() {
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
