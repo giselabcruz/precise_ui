@@ -22,24 +22,26 @@ const Home: React.FC<HomeProps> = ({ userRole, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full h-full bg-red-50">
-      <header className="bg-red-600 text-white p-4 flex justify-between items-center shadow-md">
+    <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-red-50 via-white to-red-100">
+      {/* Header */}
+      <header className="bg-red-600 text-white px-6 py-4 shadow-lg flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <img src="/Spar-Logo.png" alt="SPAR Logo" className="h-15" />
-          <span className="text-xl font-bold">Panel de Logística</span>
+          <img src="/Spar-Logo.png" alt="SPAR Logo" className="h-12" />
+          <h1 className="text-2xl font-bold tracking-wide">Panel de Logística SPAR</h1>
         </div>
         <div className="relative">
           <button
             onClick={toggleMenu}
-            className="bg-red-700 px-4 py-2 rounded-full hover:bg-red-800 transition-colors"
+            className="bg-red-700 hover:bg-red-800 transition px-4 py-2 rounded-full shadow-md text-white"
+            aria-label="Menú de usuario"
           >
             👤
           </button>
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-20">
               <button
                 onClick={handleLogout}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-100 w-full text-left"
+                className="block w-full px-4 py-2 text-sm text-gray-800 hover:bg-red-100 text-left"
               >
                 Cerrar sesión
               </button>
@@ -48,10 +50,16 @@ const Home: React.FC<HomeProps> = ({ userRole, onLogout }) => {
         </div>
       </header>
 
-      <main className="flex-grow p-6 bg-green-800">        {userRole === 'store_manager' && <StorageManager />}
+      {/* Main content */}
+      <main className="flex-grow px-6 py-8 bg-white/60">
+        {userRole === 'store_manager' && <StorageManager />}
         {userRole === 'supplier' && <Supplier />}
       </main>
-      <FloatingLogo />
+
+      {/* Footer/logo */}
+      <footer className="mt-auto">
+        <FloatingLogo />
+      </footer>
     </div>
   );
 };

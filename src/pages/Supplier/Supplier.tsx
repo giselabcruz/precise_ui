@@ -5,12 +5,19 @@ import FloatingLogo from '../../components/FloatingLogo';
 function Supplier() {
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [asignacionMensaje, setAsignacionMensaje] = useState<string | null>(null);
 
   const markets = ['Supermercado A', 'Supermercado B', 'Supermercado C'];
+
   const products = [
     { name: 'Producto 1', quantity: 100, center: 'Supermercado A' },
     { name: 'Producto 2', quantity: 50, center: 'Supermercado B' },
     { name: 'Producto 3', quantity: 200, center: 'Supermercado C' },
+  ];
+
+  const stockAlerts = [
+    { store: 'Supermercado A', product: 'Producto 1' },
+    { store: 'Supermercado C', product: 'Producto 3' },
   ];
 
   const handleCenterChange = (center: string) => {
@@ -29,88 +36,127 @@ function Supplier() {
     selectedCenters.includes(product.center)
   );
 
-  return (
-    <div className="supplier-container p-6 bg-white min-h-screen text-black">
-      <h1 className="text-2xl font-bold mb-6">Panel de Proveedor</h1>
+  const handleAceptarReposicion = async (centro: string, supermercado: string, producto: string) => {
+    try {
+      const res = await fetch('/api/ruta-optima', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ centro, supermercado }),
+      });
 
-      <div className="logistics-center-selector mb-8">
-        <div className="relative flex items-center justify-center">
+      const data = await res.json();
+
+      const now = new Date();
+      const hora = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      setAsignacionMensaje(
+        `✅ Entrega de mercancía de "${producto}" asignada a Proveedor SPAR a las ${hora}`
+      );
+
+      if (data.ruta) {
+        alert(`🛣 Ruta óptima desde ${centro} hasta ${supermercado}:\n\n${data.ruta.join(' ➝ ')}`);
+      } else {
+        alert('❌ No se pudo encontrar una ruta.');
+      }
+    } catch (error) {
+      console.error('Error al obtener ruta:', error);
+      alert('⚠️ Error al contactar con el servidor.');
+    }
+  };
+
+  return (
+    <div className="supplier-container min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 text-gray-900 py-12 px-6 md:px-16">
+      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-md shadow-2xl rounded-3xl p-10 border border-gray-200 transition-all duration-300">
+        <h1 className="text-4xl font-extrabold text-center text-green-700 mb-8">
+          Panel de Proveedor
+        </h1>
+
+        {/* Mensaje de asignación */}
+        {asignacionMensaje && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg shadow-md text-center font-medium">
+            {asignacionMensaje}
+          </div>
+        )}
+
+        {/* Dropdown de supermercados */}
+        <div className="mb-10 text-center">
           <button
-            id="dropdownDefault"
             onClick={toggleDropdown}
-            className="text-black bg-white border border-black rounded-lg shadow-sm hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium text-sm px-4 py-2.5 text-center inline-flex items-center transition"
-            type="button"
+            className="bg-green-600 hover:bg-green-700 transition-all text-white font-bold py-2.5 px-8 rounded-full shadow-md"
           >
-            Seleccionar Supermercados
-            <svg
-              className="w-4 h-4 ml-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            Seleccionar supermercados
           </button>
 
           {isDropdownVisible && (
-            <div className="absolute top-full mt-2 z-10 w-64 p-4 bg-white border border-black rounded-lg shadow-lg">
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center">
-                  <label className="ml-2 font-medium cursor-pointer">
+            <div className="mt-6 flex justify-center">
+              <div className="bg-white border border-green-200 rounded-xl p-6 shadow-lg w-fit">
+                {markets.map((market) => (
+                  <label key={market} className="block text-md font-medium text-gray-800 mb-3">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 accent-black"
-                      checked={selectedCenters.length === markets.length}
-                      onChange={() =>
-                        selectedCenters.length === markets.length
-                          ? setSelectedCenters([])
-                          : setSelectedCenters(markets)
-                      }
+                      checked={selectedCenters.includes(market)}
+                      onChange={() => handleCenterChange(market)}
+                      className="mr-2 accent-green-500"
                     />
-                    <span className="ml-2">Todos</span>
+                    {market}
                   </label>
-                </li>
-                {markets.map((center) => (
-                  <li className="flex items-center" key={center}>
-                    <label className="ml-2 font-medium cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 accent-black"
-                        checked={selectedCenters.includes(center)}
-                        onChange={() => handleCenterChange(center)}
-                      />
-                      <span className="ml-2">{center}</span>
-                    </label>
-                  </li>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>
-      </div>
 
-      <div className="product-list">
-        <h2 className="text-xl font-semibold mb-4">Productos disponibles</h2>
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded shadow border border-black">
-            <div className="font-bold">Nombre</div>
-            <div className="font-bold">Cantidad</div>
-            <div className="font-bold">Supermercado</div>
-            {filteredProducts.map((product, index) => (
-              <React.Fragment key={index}>
-                <div className="border-b border-black py-2">{product.name}</div>
-                <div className="border-b border-black py-2">{product.quantity}</div>
-                <div className="border-b border-black py-2">{product.center}</div>
-              </React.Fragment>
-            ))}
+        {/* Lista de productos */}
+        <div className="mb-14">
+          <h2 className="text-2xl font-semibold text-green-800 mb-4">📦 Productos Disponibles</h2>
+          {filteredProducts.length > 0 ? (
+            <ul className="list-disc list-inside text-gray-800 space-y-1">
+              {filteredProducts.map((product, index) => (
+                <li key={index}>
+                  <span className="font-bold">{product.name}</span> — {product.quantity} unidades en{' '}
+                  <span className="italic text-green-600">{product.center}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="italic text-gray-500">Selecciona un supermercado para ver productos.</p>
+          )}
+        </div>
+
+        {/* Tabla de alertas */}
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-red-600">🚨 Alertas de Reposición 🚨</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse bg-white rounded-xl shadow-md">
+              <thead>
+                <tr className="bg-red-100 text-red-800 text-sm uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b border-red-200 text-left">🛒 Tienda</th>
+                  <th className="px-6 py-3 border-b border-red-200 text-left">📦 Producto</th>
+                  <th className="px-6 py-3 border-b border-red-200 text-left">✔️ Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockAlerts.map((alert, index) => (
+                  <tr key={index} className="hover:bg-red-50 transition-colors duration-200">
+                    <td className="px-6 py-3 border-b border-gray-100">{alert.store}</td>
+                    <td className="px-6 py-3 border-b border-gray-100">{alert.product}</td>
+                    <td className="px-6 py-3 border-b border-gray-100">
+                      <button
+                        onClick={() =>
+                          handleAceptarReposicion('Centro A', alert.store, alert.product)
+                        }
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
+                      >
+                        Aceptar y ver ruta de transporte asignada
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <p>No hay productos disponibles para los supermercados seleccionados.</p>
-        )}
+        </div>
       </div>
-
-      <FloatingLogo />
     </div>
   );
 }
