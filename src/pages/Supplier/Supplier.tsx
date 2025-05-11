@@ -1,12 +1,28 @@
 import React, { useState } from 'react';
 import './Supplier.css';
-import FloatingLogo from '../../components/FloatingLogo';
+import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 function Supplier() {
   const [activeTab, setActiveTab] = useState<'productos' | 'alertas'>('productos');
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const [asignacionMensaje, setAsignacionMensaje] = useState<string | null>(null);
+  const [mensajesAsignados, setMensajesAsignados] = useState<string[]>([]);
+  const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [stockAlerts, setStockAlerts] = useState([
+    {
+      store: 'Supermercado A',
+      product: 'Producto 1',
+      quantity: '30',
+      date: '11/05/2025 15:22'
+    },
+    {
+      store: 'Supermercado C',
+      product: 'Producto 3',
+      quantity: '50',
+      date: '11/05/2025 16:39'
+    }
+  ]);
 
   const markets = ['Supermercado A', 'Supermercado B', 'Supermercado C'];
 
@@ -16,9 +32,12 @@ function Supplier() {
     { name: 'Producto 3', quantity: 200, center: 'Supermercado C' },
   ];
 
-  const stockAlerts = [
-    { store: 'Supermercado A', product: 'Producto 1' },
-    { store: 'Supermercado C', product: 'Producto 3' },
+  const gc100Path: [number, number][] = [
+    [27.9956, -15.385],
+    [28.0058, -15.3954],
+    [28.0110, -15.4032],
+    [28.0210, -15.4122],
+    [28.0300, -15.4200],
   ];
 
   const handleCenterChange = (center: string) => {
@@ -35,44 +54,58 @@ function Supplier() {
     selectedCenters.includes(product.center)
   );
 
-  const handleAceptarReposicion = async (centro: string, supermercado: string, producto: string) => {
-    try {
-      const res = await fetch('/api/ruta-optima', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ centro, supermercado }),
-      });
+  const handleAceptarReposicion = (centro: string, supermercado: string, producto: string) => {
+    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nuevoMensaje = `✅ Entrega de "${producto}" asignada a Proveedor SPAR a las ${hora} — Ruta: GC-100`;
 
-      const data = await res.json();
-      const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
+    setMostrarMapa(true);
 
-      setAsignacionMensaje(`✅ Entrega de "${producto}" asignada a Proveedor SPAR a las ${hora}`);
-
-      if (data.ruta) {
-        alert(`🛣 Ruta óptima desde ${centro} hasta ${supermercado}:\n${data.ruta.join(' ➝ ')}`);
-      } else {
-        alert('❌ No se pudo encontrar una ruta.');
-      }
-    } catch (error) {
-      alert('⚠️ Error al contactar con el servidor.');
-    }
+    setStockAlerts((prev) =>
+      prev.filter((a) => !(a.store === supermercado && a.product === producto))
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 py-12 px-6">
       <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-md shadow-2xl rounded-3xl p-10 border border-gray-200">
-        <h1 className="text-4xl font-extrabold text-center text-green-700 mb-8">
-          Panel de Proveedor
-        </h1>
+        <h1 className="text-4xl font-extrabold text-center text-green-700 mb-8">Panel de Proveedor</h1>
 
-        {/* Mensaje de asignación */}
-        {asignacionMensaje && (
-          <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg shadow-md text-center font-medium">
-            {asignacionMensaje}
+        {mensajesAsignados.length > 0 && (
+          <div className="mb-6 space-y-3">
+            {mensajesAsignados.map((msg, index) => (
+              <div
+                key={index}
+                className="p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg shadow-md text-center font-medium"
+              >
+                {msg}
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Navegación entre secciones */}
+        {mostrarMapa && (
+          <div className="mb-10">
+            <h3 className="text-lg font-semibold text-green-800 mb-2 text-center">
+              🗺 Carretera GC-100
+            </h3>
+            <div className="rounded-xl overflow-hidden border border-green-300 shadow-md" style={{ height: '300px' }}>
+              <MapContainer
+                center={[28.015, -15.405]}
+                zoom={13}
+                scrollWheelZoom={false}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Polyline positions={gc100Path} color="green" />
+              </MapContainer>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-center gap-6 mb-10">
           <button
             onClick={() => setActiveTab('productos')}
@@ -96,7 +129,6 @@ function Supplier() {
           </button>
         </div>
 
-        {/* Sección: Productos */}
         {activeTab === 'productos' && (
           <>
             <div className="text-center mb-10">
@@ -142,39 +174,48 @@ function Supplier() {
           </>
         )}
 
-        {/* Sección: Alertas */}
         {activeTab === 'alertas' && (
           <>
             <h2 className="text-2xl font-semibold mb-4 text-red-600">🚨 Alertas de Reposición</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse bg-white rounded-xl shadow-md">
-                <thead>
-                  <tr className="bg-red-100 text-red-800 text-sm uppercase tracking-wider">
-                    <th className="px-6 py-3 border-b border-red-200 text-left">🛒 Tienda</th>
-                    <th className="px-6 py-3 border-b border-red-200 text-left">📦 Producto</th>
-                    <th className="px-6 py-3 border-b border-red-200 text-left">✔️ Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stockAlerts.map((alert, index) => (
-                    <tr key={index} className="hover:bg-red-50 transition-colors duration-200">
-                      <td className="px-6 py-3 border-b border-gray-100">{alert.store}</td>
-                      <td className="px-6 py-3 border-b border-gray-100">{alert.product}</td>
-                      <td className="px-6 py-3 border-b border-gray-100">
-                        <button
-                          onClick={() =>
-                            handleAceptarReposicion('Centro A', alert.store, alert.product)
-                          }
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
-                        >
-                          Aceptar y ver ruta
-                        </button>
-                      </td>
+            {stockAlerts.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse bg-white rounded-xl shadow-md">
+                  <thead>
+                    <tr className="bg-red-100 text-red-800 text-sm uppercase tracking-wider">
+                      <th className="px-6 py-3 border-b border-red-200 text-left">📦 Producto</th>
+                      <th className="px-6 py-3 border-b border-red-200 text-left">🔢 Cantidad</th>
+                      <th className="px-6 py-3 border-b border-red-200 text-left">🕓 Fecha</th>
+                      <th className="px-6 py-3 border-b border-red-200 text-left">🛒 Tienda</th>
+                      <th className="px-6 py-3 border-b border-red-200 text-left">✔️ Acción</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {stockAlerts.map((alert, index) => (
+                      <tr key={index} className="hover:bg-red-50 transition-colors duration-200">
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.product}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.quantity}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.date}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.store}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">
+                          <button
+                            onClick={() =>
+                              handleAceptarReposicion('Centro A', alert.store, alert.product)
+                            }
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
+                          >
+                            Aceptar y ver ruta
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center italic text-gray-500">
+                No hay alertas de reposición pendientes.
+              </p>
+            )}
           </>
         )}
       </div>
