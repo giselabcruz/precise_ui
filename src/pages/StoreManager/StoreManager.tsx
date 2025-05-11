@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './StoreManager.css';
+import FloatingLogo from '../../components/FloatingLogo';
 
 function StoreManager() {
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
@@ -108,6 +109,8 @@ function StoreManager() {
           <p className="text-red-500">No hay productos disponibles para los centros seleccionados.</p>
         )}
       </div>
+
+      <FloatingLogo /> {/* ✅ LOGO AÑADIDO */}
     </div>
   );
 }

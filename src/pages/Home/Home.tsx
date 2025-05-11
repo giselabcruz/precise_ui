@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import StorageManager from '../StoreManager/StoreManager';
 import Supplier from '../Supplier/Supplier';
+import FloatingLogo from '../../components/FloatingLogo';
 
 interface HomeProps {
   userRole: string;
@@ -47,10 +48,10 @@ const Home: React.FC<HomeProps> = ({ userRole, onLogout }) => {
         </div>
       </header>
 
-      <main className="flex-grow p-6 bg-red-100">
-        {userRole === 'store_manager' && <StorageManager />}
+      <main className="flex-grow p-6 bg-green-800">        {userRole === 'store_manager' && <StorageManager />}
         {userRole === 'supplier' && <Supplier />}
       </main>
+      <FloatingLogo />
     </div>
   );
 };

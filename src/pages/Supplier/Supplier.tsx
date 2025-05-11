@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Supplier.css';
+import FloatingLogo from '../../components/FloatingLogo';
 
 function Supplier() {
   const [selectedCenters, setSelectedCenters] = useState<string[]>([]);
@@ -29,15 +30,15 @@ function Supplier() {
   );
 
   return (
-    <div className="supplier-container p-6 bg-red-50 min-h-screen">
-      <h1 className="text-2xl text-red-700 font-bold mb-6">Panel de Proveedor</h1>
+    <div className="supplier-container p-6 bg-white min-h-screen text-black">
+      <h1 className="text-2xl font-bold mb-6">Panel de Proveedor</h1>
 
       <div className="logistics-center-selector mb-8">
         <div className="relative flex items-center justify-center">
           <button
             id="dropdownDefault"
             onClick={toggleDropdown}
-            className="text-red-700 bg-white border border-red-300 rounded-lg shadow-sm hover:bg-red-100 focus:ring-4 focus:ring-red-200 font-medium text-sm px-4 py-2.5 text-center inline-flex items-center transition"
+            className="text-black bg-white border border-black rounded-lg shadow-sm hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-medium text-sm px-4 py-2.5 text-center inline-flex items-center transition"
             type="button"
           >
             Seleccionar Supermercados
@@ -53,13 +54,13 @@ function Supplier() {
           </button>
 
           {isDropdownVisible && (
-            <div className="absolute top-full mt-2 z-10 w-64 p-4 bg-white border border-red-200 rounded-lg shadow-lg">
-              <ul className="space-y-2 text-sm text-red-800">
+            <div className="absolute top-full mt-2 z-10 w-64 p-4 bg-white border border-black rounded-lg shadow-lg">
+              <ul className="space-y-2 text-sm">
                 <li className="flex items-center">
                   <label className="ml-2 font-medium cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 accent-red-600"
+                      className="w-4 h-4 accent-black"
                       checked={selectedCenters.length === markets.length}
                       onChange={() =>
                         selectedCenters.length === markets.length
@@ -75,7 +76,7 @@ function Supplier() {
                     <label className="ml-2 font-medium cursor-pointer">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 accent-red-600"
+                        className="w-4 h-4 accent-black"
                         checked={selectedCenters.includes(center)}
                         onChange={() => handleCenterChange(center)}
                       />
@@ -90,24 +91,26 @@ function Supplier() {
       </div>
 
       <div className="product-list">
-        <h2 className="text-xl text-red-600 font-semibold mb-4">Productos disponibles</h2>
+        <h2 className="text-xl font-semibold mb-4">Productos disponibles</h2>
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-3 gap-4 bg-red-100 p-4 rounded shadow">
-            <div className="font-bold text-red-800">Nombre</div>
-            <div className="font-bold text-red-800">Cantidad</div>
-            <div className="font-bold text-red-800">Supermercado</div>
+          <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded shadow border border-black">
+            <div className="font-bold">Nombre</div>
+            <div className="font-bold">Cantidad</div>
+            <div className="font-bold">Supermercado</div>
             {filteredProducts.map((product, index) => (
               <React.Fragment key={index}>
-                <div className="border-b border-red-300 py-2 text-red-700">{product.name}</div>
-                <div className="border-b border-red-300 py-2 text-red-700">{product.quantity}</div>
-                <div className="border-b border-red-300 py-2 text-red-700">{product.center}</div>
+                <div className="border-b border-black py-2">{product.name}</div>
+                <div className="border-b border-black py-2">{product.quantity}</div>
+                <div className="border-b border-black py-2">{product.center}</div>
               </React.Fragment>
             ))}
           </div>
         ) : (
-          <p className="text-red-500">No hay productos disponibles para los supermercados seleccionados.</p>
+          <p>No hay productos disponibles para los supermercados seleccionados.</p>
         )}
       </div>
+
+      <FloatingLogo />
     </div>
   );
 }
