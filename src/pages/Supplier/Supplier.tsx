@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './Supplier.css';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -9,6 +10,7 @@ function Supplier() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [mensajesAsignados, setMensajesAsignados] = useState<string[]>([]);
   const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [logisticsCenters, setLogisticsCenters] = useState<{ name: string; stock: { name: string; quantity: number }[] }[]>([]);
   const [stockAlerts, setStockAlerts] = useState([
     {
       store: 'Supermercado A',
@@ -24,21 +26,21 @@ function Supplier() {
     }
   ]);
 
-  const markets = ['Supermercado A', 'Supermercado B', 'Supermercado C'];
-
-  const products = [
-    { name: 'Producto 1', quantity: 100, center: 'Supermercado A' },
-    { name: 'Producto 2', quantity: 50, center: 'Supermercado B' },
-    { name: 'Producto 3', quantity: 200, center: 'Supermercado C' },
-  ];
-
-  const gc100Path: [number, number][] = [
-    [27.9956, -15.385],
-    [28.0058, -15.3954],
-    [28.0110, -15.4032],
-    [28.0210, -15.4122],
-    [28.0300, -15.4200],
-  ];
+  useEffect(() => {
+    async function fetchCenters() {
+      try {
+        const response = await axios.get('http://localhost:4000/api/v1/logisticCenters');
+        const formatted = response.data.map((center: any) => ({
+          name: center.name,
+          stock: center.stock || []
+        }));
+        setLogisticsCenters(formatted);
+      } catch (error) {
+        console.error('Error al obtener los centros logísticos:', error);
+      }
+    }
+    fetchCenters();
+  }, []);
 
   const handleCenterChange = (center: string) => {
     setSelectedCenters((prev) =>
@@ -50,9 +52,17 @@ function Supplier() {
     setIsDropdownVisible((prev) => !prev);
   };
 
-  const filteredProducts = products.filter((product) =>
-    selectedCenters.includes(product.center)
-  );
+  const filteredProducts = logisticsCenters
+    .filter(center => selectedCenters.includes(center.name))
+    .flatMap(center => (center.stock || []).map(product => ({ ...product, center: center.name })));
+
+  const gc100Path: [number, number][] = [
+    [27.9956, -15.385],
+    [28.0058, -15.3954],
+    [28.0110, -15.4032],
+    [28.0210, -15.4122],
+    [28.0300, -15.4200],
+  ];
 
   const handleAceptarReposicion = (
     centro: string,
@@ -62,13 +72,7 @@ function Supplier() {
     fecha: string
   ) => {
     const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const nuevoMensaje = `✅ Reposición confirmada:
-📦 Producto: ${producto}
-🔢 Cantidad: ${cantidad}
-🕓 Fecha de alerta: ${fecha}
-🏪 Tienda: ${supermercado}
-🕒 Asignado a Proveedor SPAR a las ${hora}
-🛣 Ruta: GC-100`;
+    const nuevoMensaje = `✅ Reposición confirmada:\n📦 Producto: ${producto}\n🔢 Cantidad: ${cantidad}\n🕓 Fecha de alerta: ${fecha}\n🏪 Tienda: ${supermercado}\n🕒 Asignado a Proveedor SPAR a las ${hora}\n🛣 Ruta: GC-100`;
 
     setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
     setMostrarMapa(true);
@@ -147,21 +151,21 @@ function Supplier() {
                 onClick={toggleDropdown}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-8 rounded-full shadow-md"
               >
-                Seleccionar supermercados
+                Seleccionar centros logísticos
               </button>
 
               {isDropdownVisible && (
                 <div className="mt-6 flex justify-center">
                   <div className="bg-white border border-green-200 rounded-xl p-6 shadow-lg w-fit">
-                    {markets.map((market) => (
-                      <label key={market} className="block text-md font-medium text-gray-800 mb-3">
+                    {logisticsCenters.map((center) => (
+                      <label key={center.name} className="block text-md font-medium text-gray-800 mb-3">
                         <input
                           type="checkbox"
-                          checked={selectedCenters.includes(market)}
-                          onChange={() => handleCenterChange(market)}
+                          checked={selectedCenters.includes(center.name)}
+                          onChange={() => handleCenterChange(center.name)}
                           className="mr-2 accent-green-500"
                         />
-                        {market}
+                        {center.name}
                       </label>
                     ))}
                   </div>
@@ -180,7 +184,7 @@ function Supplier() {
                 ))}
               </ul>
             ) : (
-              <p className="italic text-gray-500">Selecciona un supermercado para ver productos.</p>
+              <p className="italic text-gray-500">Selecciona un centro logístico para ver productos.</p>
             )}
           </>
         )}

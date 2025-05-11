@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './StoreManager.css';
 
 function StoreManager() {
-  const assignedStore = 'Supermercado A';
+  const [assignedStores, setAssignedStores] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'productos' | 'alertas'>('productos');
 
   const products = [
-    { name: 'Producto 1', quantity: 100, center: 'Supermercado A' },
-    { name: 'Producto 2', quantity: 50, center: 'Supermercado B' },
-    { name: 'Producto 3', quantity: 200, center: 'Supermercado C' },
-    { name: 'Leche Entera', quantity: 80, center: 'Supermercado A' },
-    { name: 'Yogur Natural', quantity: 40, center: 'Supermercado A' },
-    { name: 'Pan Integral', quantity: 30, center: 'Supermercado A' },
+    { name: 'Leche Entera', quantity: 100, center: assignedStores[0] },
+    { name: 'Yogur Natural', quantity: 40, center: assignedStores[0] },
+    { name: 'Pan Integral', quantity: 30, center: assignedStores[0] },
   ];
 
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const response = await axios.get('http://localhost:4000/api/v1/supermarkets?storeManagerId=87654321A');
+        const storeNames = response.data.map((store: any) => store.name);
+        setAssignedStores(storeNames);
+      } catch (error) {
+        console.error('Error al obtener los supermercados:', error);
+      }
+    }
+
+    fetchStores();
+  }, []);
+
   const filteredProducts = products.filter(
-    (product) => product.center === assignedStore
+    (product) => assignedStores.includes(product.center)
   );
 
   const [alertProduct, setAlertProduct] = useState('');
@@ -41,7 +53,7 @@ function StoreManager() {
       product: alertProduct,
       quantity: alertQuantity,
       date: new Date().toLocaleString(),
-      store: assignedStore,
+      store: assignedStores[0] || 'Tienda no asignada',
     };
 
     setAlerts((prev) => [...prev, newAlert]);
@@ -56,9 +68,9 @@ function StoreManager() {
   return (
     <div className="store-manager-container min-h-screen bg-gradient-to-br from-red-100 via-white to-red-200 text-gray-900 py-12 px-6 md:px-16">
       <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-md shadow-2xl rounded-3xl p-10 border border-gray-200">
-        <h1 className="text-4xl font-extrabold text-center text-red-700 mb-8">
-          🛍 Gestión de Inventario - {assignedStore}
-        </h1>
+      <h1 className="text-4xl font-extrabold text-center text-red-700 mb-8">
+        🛍 Gestión de Inventario - Supermercado asignado: {assignedStores[0] }
+      </h1>
 
         {/* Navegación */}
         <div className="flex justify-center gap-6 mb-10">
