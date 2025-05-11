@@ -54,13 +54,24 @@ function Supplier() {
     selectedCenters.includes(product.center)
   );
 
-  const handleAceptarReposicion = (centro: string, supermercado: string, producto: string) => {
+  const handleAceptarReposicion = (
+    centro: string,
+    supermercado: string,
+    producto: string,
+    cantidad: string,
+    fecha: string
+  ) => {
     const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const nuevoMensaje = `✅ Entrega de "${producto}" asignada a Proveedor SPAR a las ${hora} — Ruta: GC-100`;
+    const nuevoMensaje = `✅ Reposición confirmada:
+📦 Producto: ${producto}
+🔢 Cantidad: ${cantidad}
+🕓 Fecha de alerta: ${fecha}
+🏪 Tienda: ${supermercado}
+🕒 Asignado a Proveedor SPAR a las ${hora}
+🛣 Ruta: GC-100`;
 
     setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
     setMostrarMapa(true);
-
     setStockAlerts((prev) =>
       prev.filter((a) => !(a.store === supermercado && a.product === producto))
     );
@@ -76,7 +87,7 @@ function Supplier() {
             {mensajesAsignados.map((msg, index) => (
               <div
                 key={index}
-                className="p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg shadow-md text-center font-medium"
+                className="whitespace-pre-line p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg shadow-md text-center font-medium"
               >
                 {msg}
               </div>
@@ -199,7 +210,7 @@ function Supplier() {
                         <td className="px-6 py-3 border-b border-gray-100">
                           <button
                             onClick={() =>
-                              handleAceptarReposicion('Centro A', alert.store, alert.product)
+                              handleAceptarReposicion('Centro A', alert.store, alert.product, alert.quantity, alert.date)
                             }
                             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
                           >
