@@ -11,20 +11,7 @@ function Supplier() {
   const [mensajesAsignados, setMensajesAsignados] = useState<string[]>([]);
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const [logisticsCenters, setLogisticsCenters] = useState<{ name: string; stock: { name: string; quantity: number }[] }[]>([]);
-  const [stockAlerts, setStockAlerts] = useState([
-    {
-      store: 'Supermercado A',
-      product: 'Producto 1',
-      quantity: '30',
-      date: '11/05/2025 15:22'
-    },
-    {
-      store: 'Supermercado C',
-      product: 'Producto 3',
-      quantity: '50',
-      date: '11/05/2025 16:39'
-    }
-  ]);
+  const [stockAlerts, setStockAlerts] = useState([]);
 
   useEffect(() => {
     async function fetchCentersWithStock() {
@@ -53,7 +40,26 @@ function Supplier() {
       }
     }
 
+    async function fetchAlerts() {
+      try {
+        const response = await axios.get('http://localhost:4000/api/v1/stocks/notifications');
+        const data = response.data;
+
+        const formatted = data.map((alert: any) => ({
+          store: alert.supermarket?.name || 'Tienda desconocida',
+          product: alert.product?.name || 'Producto desconocido',
+          quantity: alert.quantity?.toString() || '0',
+          date: alert.createdAt ? new Date(alert.createdAt).toLocaleString() : 'Fecha no disponible',
+        }));
+
+        setStockAlerts(formatted);
+      } catch (error) {
+        console.error('Error al obtener alertas:', error);
+      }
+    }
+
     fetchCentersWithStock();
+    fetchAlerts();
   }, []);
 
   const handleCenterChange = (center: string) => {
@@ -115,9 +121,7 @@ function Supplier() {
 
         {mostrarMapa && (
           <div className="mb-10">
-            <h3 className="text-lg font-semibold text-green-800 mb-2 text-center">
-              🗺 Carretera GC-100
-            </h3>
+            <h3 className="text-lg font-semibold text-green-800 mb-2 text-center">🗺 Carretera GC-100</h3>
             <div className="rounded-xl overflow-hidden border border-green-300 shadow-md" style={{ height: '300px' }}>
               <MapContainer
                 center={[28.015, -15.405]}
