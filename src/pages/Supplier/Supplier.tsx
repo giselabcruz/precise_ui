@@ -27,19 +27,33 @@ function Supplier() {
   ]);
 
   useEffect(() => {
-    async function fetchCenters() {
+    async function fetchCentersWithStock() {
       try {
-        const response = await axios.get('http://localhost:4000/api/v1/logisticCenters');
-        const formatted = response.data.map((center: any) => ({
-          name: center.name,
-          stock: center.stock || []
-        }));
-        setLogisticsCenters(formatted);
+        const centersResponse = await axios.get('http://localhost:4000/api/v1/logisticCenters');
+        const centers = centersResponse.data;
+
+        const centersWithStock = await Promise.all(
+          centers.map(async (center: any) => {
+            const stockResponse = await axios.get(
+              `http://localhost:4000/api/v1/stocks/logistic-center/${center._id}`
+            );
+            return {
+              name: center.name,
+              stock: stockResponse.data.map((s: any) => ({
+                name: s.product?.name || 'Producto desconocido',
+                quantity: s.quantity
+              }))
+            };
+          })
+        );
+
+        setLogisticsCenters(centersWithStock);
       } catch (error) {
-        console.error('Error al obtener los centros logísticos:', error);
+        console.error('Error al obtener centros logísticos y stock:', error);
       }
     }
-    fetchCenters();
+
+    fetchCentersWithStock();
   }, []);
 
   const handleCenterChange = (center: string) => {
