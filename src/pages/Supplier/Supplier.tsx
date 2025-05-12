@@ -12,6 +12,7 @@ function Supplier() {
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const [logisticsCenters, setLogisticsCenters] = useState<{ name: string; stock: { name: string; quantity: number }[] }[]>([]);
   const [stockAlerts, setStockAlerts] = useState([]);
+  const [selectedCentersByAlert, setSelectedCentersByAlert] = useState<{ [alertId: string]: string }>({});
 
   useEffect(() => {
     async function fetchCentersWithStock() {
@@ -25,6 +26,7 @@ function Supplier() {
               `http://localhost:4000/api/v1/stocks/logistic-center/${center._id}`
             );
             return {
+              id: center._id,
               name: center.name,
               stock: stockResponse.data.map((s: any) => ({
                 name: s.product?.name || 'Producto desconocido',
@@ -46,8 +48,9 @@ function Supplier() {
         const data = response.data;
 
         const formatted = data.map((alert: any) => ({
-          store: alert.supermarket?.name || 'Tienda desconocida',
-          product: alert.product?.name || 'Producto desconocido',
+          id: alert._id,
+          store: alert.supermarket || 'Tienda desconocida',
+          product: alert.product || 'Producto desconocido',
           quantity: alert.quantity?.toString() || '0',
           date: alert.createdAt ? new Date(alert.createdAt).toLocaleString() : 'Fecha no disponible',
         }));
@@ -84,22 +87,32 @@ function Supplier() {
     [28.0300, -15.4200],
   ];
 
-  const handleAceptarReposicion = (
-    centro: string,
-    supermercado: string,
-    producto: string,
-    cantidad: string,
-    fecha: string
-  ) => {
-    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const nuevoMensaje = `✅ Reposición confirmada:\n📦 Producto: ${producto}\n🔢 Cantidad: ${cantidad}\n🕓 Fecha de alerta: ${fecha}\n🏪 Tienda: ${supermercado}\n🕒 Asignado a Proveedor SPAR a las ${hora}\n🛣 Ruta: GC-100`;
-
-    setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
-    setMostrarMapa(true);
-    setStockAlerts((prev) =>
-      prev.filter((a) => !(a.store === supermercado && a.product === producto))
-    );
-  };
+ const handleAceptarReposicion = (
+  alertaId: string,
+  centroId: string, // Now this is the _id of the center
+  supermercado: string,
+  producto: string,
+  cantidad: string,
+  fecha: string
+) => {
+  const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const nuevoMensaje = `✅ Reposición confirmada:\n📦 Producto: ${producto.name}\n🔢 Cantidad: ${cantidad}\n🕓 Fecha de alerta: ${fecha}\n🏪 Tienda: ${supermercado.name}\n🕒 Asignado a Proveedor SPAR a las ${hora}\n🛣 Ruta: GC-100\n🏢 Centro Logístico ID: ${centroId}`;
+  axios.post(`http://localhost:4000/api/v1/stocks/notifications/${alertaId}`, {
+    supermarketId: supermercado._id,
+    logisticCentertId: centroId, // Use the _id of the center here
+    requestedQuantity: cantidad,
+    productId: producto._id
+  }).then(() => {
+    console.log('Reposición aceptada y notificación enviada');
+  }).catch((error) => {
+    console.error('Error al aceptar reposición:', error);
+  });
+  setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
+  setMostrarMapa(true);
+  setStockAlerts((prev) =>
+    prev.filter((a) => !(a.store === supermercado && a.product === producto))
+  );
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 py-12 px-6">
@@ -142,21 +155,19 @@ function Supplier() {
         <div className="flex justify-center gap-6 mb-10">
           <button
             onClick={() => setActiveTab('productos')}
-            className={`px-6 py-2 font-semibold rounded-full shadow transition ${
-              activeTab === 'productos'
-                ? 'bg-green-600 text-white'
-                : 'bg-white border border-green-300 text-green-700 hover:bg-green-100'
-            }`}
+            className={`px-6 py-2 font-semibold rounded-full shadow transition ${activeTab === 'productos'
+              ? 'bg-green-600 text-white'
+              : 'bg-white border border-green-300 text-green-700 hover:bg-green-100'
+              }`}
           >
             📦 Ver productos
           </button>
           <button
             onClick={() => setActiveTab('alertas')}
-            className={`px-6 py-2 font-semibold rounded-full shadow transition ${
-              activeTab === 'alertas'
-                ? 'bg-red-600 text-white'
-                : 'bg-white border border-red-300 text-red-700 hover:bg-red-100'
-            }`}
+            className={`px-6 py-2 font-semibold rounded-full shadow transition ${activeTab === 'alertas'
+              ? 'bg-red-600 text-white'
+              : 'bg-white border border-red-300 text-red-700 hover:bg-red-100'
+              }`}
           >
             🚨 Ver alertas
           </button>
@@ -219,20 +230,46 @@ function Supplier() {
                       <th className="px-6 py-3 border-b border-red-200 text-left">🔢 Cantidad</th>
                       <th className="px-6 py-3 border-b border-red-200 text-left">🕓 Fecha</th>
                       <th className="px-6 py-3 border-b border-red-200 text-left">🛒 Tienda</th>
+                      <th className="px-6 py-3 border-b border-red-200 text-left">✔️ Centro Logístico</th>
                       <th className="px-6 py-3 border-b border-red-200 text-left">✔️ Acción</th>
                     </tr>
                   </thead>
                   <tbody>
                     {stockAlerts.map((alert, index) => (
                       <tr key={index} className="hover:bg-red-50 transition-colors duration-200">
-                        <td className="px-6 py-3 border-b border-gray-100">{alert.product}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.product.name}</td>
                         <td className="px-6 py-3 border-b border-gray-100">{alert.quantity}</td>
                         <td className="px-6 py-3 border-b border-gray-100">{alert.date}</td>
-                        <td className="px-6 py-3 border-b border-gray-100">{alert.store}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">{alert.store.name}</td>
+                        <td className="px-6 py-3 border-b border-gray-100">
+                          {<select
+                            value={selectedCentersByAlert[alert.id] || ''} // Use the selected value for this alert
+                            onChange={(e) => {
+                              setSelectedCentersByAlert((prev) => ({
+                                ...prev,
+                                [alert.id]: e.target.value, // Store the _id of the selected center
+                              }));
+                            }}
+                            className="border rounded px-2 py-1 text-sm"
+                          >
+                            <option value="">Seleccionar centro</option>
+                            {logisticsCenters.map((center) => (
+                              <option key={center.name} value={center.id}>
+                                {center.name} {/* Display the name */}
+                              </option>
+                            ))}
+                          </select>}</td>
                         <td className="px-6 py-3 border-b border-gray-100">
                           <button
                             onClick={() =>
-                              handleAceptarReposicion('Centro A', alert.store, alert.product, alert.quantity, alert.date)
+                              handleAceptarReposicion(
+                                alert.id,
+                                selectedCentersByAlert[alert.id], // Pass the _id of the selected center
+                                alert.store,
+                                alert.product,
+                                alert.quantity,
+                                alert.date
+                              )
                             }
                             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
                           >
