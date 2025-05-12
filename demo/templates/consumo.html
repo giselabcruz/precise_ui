@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consumir productos – Precise</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Precise</h1>
+    <h2>Consumir Productos</h2>
+
+    <form id="consumo-form" style="max-width: 600px; margin: auto; padding: 20px;">
+        <label for="supermercado">Supermercado:</label><br>
+        <select id="supermercado" required>
+            <option value="">Selecciona uno</option>
+            {% for s in supermercados %}
+            <option value="{{ s.id }}">{{ s.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="producto">Producto:</label><br>
+        <select id="producto" required>
+            <option value="">Selecciona uno</option>
+            {% for p in productos %}
+            <option value="{{ p.id }}">{{ p.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="cantidad">Cantidad a consumir:</label><br>
+        <input type="number" id="cantidad" min="1" required><br><br>
+
+        <button type="submit">Consumir</button>
+    </form>
+
+    <p id="resultado" style="text-align: center; margin-top: 20px;"></p>
+
+    <script>
+        document.getElementById("consumo-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const supermercado_id = document.getElementById("supermercado").value;
+            const producto_id = document.getElementById("producto").value;
+            const cantidad = parseInt(document.getElementById("cantidad").value);
+
+            const res = await fetch("/consumo", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ supermercado_id, producto_id, cantidad })
+            });
+
+            const data = await res.json();
+            const resultado = document.getElementById("resultado");
+            resultado.textContent = data.message;
+            resultado.style.color = data.status === "ok" ? "green" : "red";
+        });
+    </script>
+</body>
+</html>
