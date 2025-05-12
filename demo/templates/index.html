@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="stylesheet" href="../static/style.css">
+    <meta charset="UTF-8">
+    <title>Precise</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Precise</h1>
+
+    <h2>Inventario Actual</h2>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <label>Supermercado:
+            <select id="supermercadoFiltro">
+                <option value="">Todos</option>
+                {% for s in supermercados %}
+                <option value="{{ s.id }}">{{ s.nombre }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label style="margin-left: 20px;">Producto:
+            <select id="productoFiltro">
+                <option value="">Todos</option>
+                {% for p in productos %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <table id="tablaInventario">
+        <thead>
+            <tr>
+                <th>Supermercado</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Alerta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventario %}
+            <tr class="{{ 'alerta' if item.cantidad == 0 else '' }}">
+                <td>{{ item.supermercado }}</td>
+                <td>{{ item.producto }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>
+                    {% if item.cantidad == 0 %}
+                    <span style="color: red; font-weight: bold;">¡Producto agotado!</span>
+                    {% else %}
+                    No
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+    const UMEBRAL = 5;
+
+    const supermercadoFiltro = document.getElementById("supermercadoFiltro");
+    const productoFiltro = document.getElementById("productoFiltro");
+    const tbody = document.querySelector("#tablaInventario tbody");
+
+    async function filtrar() {
+        const res = await fetch("/filtrar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                supermercado_id: supermercadoFiltro.value,
+                producto_id: productoFiltro.value
+            })
+        });
+
+        const data = await res.json();
+        tbody.innerHTML = "";
+
+        data.forEach(item => {
+            const alerta = item.cantidad < UMEBRAL ? 'alerta' : '';
+            const mensajeAlerta = item.cantidad < UMEBRAL
+                ? `<span style="color: red; font-weight: bold;">¡Alerta! Producto con stock bajo (${item.cantidad})</span>`
+                : '';
+
+            if (item.cantidad < UMEBRAL) {
+                fetch("/api/alerta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        supermercado: item.supermercado,
+                        producto: item.producto
+                    })
+                });
+            }
+
+            const row = `<tr class="${alerta}">
+                <td>${item.supermercado}</td>
+                <td>${item.producto}</td>
+                <td>${item.cantidad}</td>
+                <td>${mensajeAlerta}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    supermercadoFiltro.addEventListener("change", filtrar);
+    productoFiltro.addEventListener("change", filtrar);
+
+    const socket = io();
+    socket.on("inventario_actualizado", () => {
+        filtrar();
+    });
+    </script>
+</body>
+</html>

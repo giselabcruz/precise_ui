@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ruta entre puntos</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.5/dist/leaflet-routing-machine.js"></script>
+</head>
+<body>
+    <div id="map" style="height: 500px;"></div>
+    <script>
+    var map = L.map('map').setView([28.04278, -15.4195549], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    async function dibujarRuta() {
+        try {
+            const res = await fetch("/api/alerta");
+            const data = await res.json();
+
+            if (data.length === 0) {
+                console.log("No hay alertas activas.");
+                return;
+            }
+
+            const centro = L.latLng(28.04278, -15.4195549);
+
+            const waypoints = [centro, ...data.map(a => L.latLng(a.lat, a.lng))];
+
+            L.Routing.control({
+                waypoints: waypoints,
+                routeWhileDragging: false,
+                addWaypoints: false,
+                show: false,
+                lineOptions: {
+                    styles: [{ color: 'blue', opacity: 0.7, weight: 5 }]
+                },
+                createMarker: function(i, wp) {
+                    if (i === 0) {
+                        return L.marker(wp.latLng).bindPopup("Centro logístico");
+                    } else {
+                        const info = data[i - 1]; // porque el 0 es el centro
+                        return L.marker(wp.latLng).bindPopup(
+                            `<strong>${info.supermercado}</strong><br>Producto: ${info.producto}`
+                        );
+                    }
+                }
+            }).on('routesfound', function() {
+                const container = document.querySelector('.leaflet-routing-container');
+                if (container) container.style.display = 'none';
+            }).addTo(map);
+
+        } catch (error) {
+            console.error("Error al obtener las alertas:", error);
+        }
+    }
+
+    window.onload = dibujarRuta;
+</script>
+
+
+
+
+</body>
+</html>
