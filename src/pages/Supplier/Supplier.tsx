@@ -79,7 +79,7 @@ function Supplier() {
     .filter(center => selectedCenters.includes(center.name))
     .flatMap(center => (center.stock || []).map(product => ({ ...product, center: center.name })));
 
-  const gc100Path: [number, number][] = [
+  const gc1Path: [number, number][] = [
     [27.9956, -15.385],
     [28.0058, -15.3954],
     [28.0110, -15.4032],
@@ -87,32 +87,31 @@ function Supplier() {
     [28.0300, -15.4200],
   ];
 
- const handleAceptarReposicion = (
-  alertaId: string,
-  centroId: string, // Now this is the _id of the center
-  supermercado: string,
-  producto: string,
-  cantidad: string,
-  fecha: string
-) => {
-  const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const nuevoMensaje = `✅ Reposición confirmada:\n📦 Producto: ${producto.name}\n🔢 Cantidad: ${cantidad}\n🕓 Fecha de alerta: ${fecha}\n🏪 Tienda: ${supermercado.name}\n🕒 Asignado a Proveedor SPAR a las ${hora}\n🛣 Ruta: GC-100\n🏢 Centro Logístico ID: ${centroId}`;
-  axios.post(`http://localhost:4000/api/v1/stocks/notifications/${alertaId}`, {
-    supermarketId: supermercado._id,
-    logisticCentertId: centroId, // Use the _id of the center here
-    requestedQuantity: cantidad,
-    productId: producto._id
-  }).then(() => {
-    console.log('Reposición aceptada y notificación enviada');
-  }).catch((error) => {
-    console.error('Error al aceptar reposición:', error);
-  });
-  setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
-  setMostrarMapa(true);
-  setStockAlerts((prev) =>
-    prev.filter((a) => !(a.store === supermercado && a.product === producto))
-  );
-};
+  const handleAceptarReposicion = (
+    alertaId: string,
+    centroId: string, // Now this is the _id of the center
+    supermercado: string,
+    producto: string,
+    cantidad: string,
+    fecha: string
+  ) => {
+    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nuevoMensaje = `✅ Reposición confirmada:\n📦 Producto: ${producto.name}\n🔢 Cantidad: ${cantidad}\n🕓 Fecha de alerta: ${fecha}\n🏪 Tienda: ${supermercado.name}\n🕒 Asignado a Proveedor SPAR a las ${hora}\n🛣 Ruta: GC-1\n🏢 Centro Logístico ID: ${centroId}`; axios.post(`http://localhost:4000/api/v1/stocks/notifications/${alertaId}`, {
+      supermarketId: supermercado._id,
+      logisticCentertId: centroId, // Use the _id of the center here
+      requestedQuantity: cantidad,
+      productId: producto._id
+    }).then(() => {
+      console.log('Reposición aceptada y notificación enviada');
+    }).catch((error) => {
+      console.error('Error al aceptar reposición:', error);
+    });
+    setMensajesAsignados((prev) => [...prev, nuevoMensaje]);
+    setMostrarMapa(true);
+    setStockAlerts((prev) =>
+      prev.filter((a) => !(a.store === supermercado && a.product === producto))
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 py-12 px-6">
@@ -134,8 +133,7 @@ function Supplier() {
 
         {mostrarMapa && (
           <div className="mb-10">
-            <h3 className="text-lg font-semibold text-green-800 mb-2 text-center">🗺 Carretera GC-100</h3>
-            <div className="rounded-xl overflow-hidden border border-green-300 shadow-md" style={{ height: '300px' }}>
+            <h3 className="text-lg font-semibold text-green-800 mb-2 text-center">🗺 Carretera GC-1</h3>            <div className="rounded-xl overflow-hidden border border-green-300 shadow-md" style={{ height: '300px' }}>
               <MapContainer
                 center={[28.015, -15.405]}
                 zoom={13}
@@ -146,7 +144,7 @@ function Supplier() {
                   attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Polyline positions={gc100Path} color="green" />
+                <Polyline positions={gc1Path} color="green" />
               </MapContainer>
             </div>
           </div>
