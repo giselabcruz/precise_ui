@@ -69,7 +69,7 @@ function StoreManager() {
       await axios.post(`http://localhost:4000/api/v1/stocks/supermarket/${storeId}/notifications`, {
         productId: selectedProduct.product._id,
         requestedQuantity: parseInt(alertQuantity, 10),
-        date: new Date().toLocaleString()
+        date: Date.now()
       });
 
       const newAlert = {
