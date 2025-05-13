@@ -16,7 +16,11 @@ function StoreManager() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await axios.get('http://localhost:4000/api/v1/supermarkets?storeManagerId=87654321A');
+        const userDataString = localStorage.getItem('userData');
+        const userData = JSON.parse(userDataString);
+
+        console.log(userData.user.dni)
+        const res = await axios.get(`http://localhost:4000/api/v1/supermarkets?storeManagerId=${userData.user.dni}`);
         const stores = res.data;
         setAssignedStores(stores);
 
