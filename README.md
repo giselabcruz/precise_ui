@@ -1,6 +1,7 @@
 # React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is the frontend interface of the Precise logistics management platform, designed to provide a seamless and efficient user experience for both web  users. Built with React for the web and React Native for mobile, the application leverages TypeScript for type safety and maintainability, and Vite as the development server and bundler for blazing-fast performance and instant feedback via Hot Module Replacement (HMR).
+
 
 Currently, two official plugins are available:
 
